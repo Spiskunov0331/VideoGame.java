@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="RetroVault-DMS:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/RetroVault_DMS_jar</output-path>
+    <root id="archive" name="RetroVault-DMS.jar">
+      <element id="module-output" name="RetroVault-DMS" />
+    </root>
+  </artifact>
+</component>

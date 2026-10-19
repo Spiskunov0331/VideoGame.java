@@ -1,0 +1,20 @@
+101-The Legend of Zelda-Switch-59.99-40-true
+102-Super Mario Odyssey-Switch-49.99-65-false
+103-Elden Ring-PS5-59.99-12-false
+104-God of War Ragnarok-PS5-69.99-30-true
+105-Halo Infinite-Xbox-59.99-75-false
+106-Cyberpunk 2077-PC-49.99-55-false
+107-Final Fantasy VII Rebirth-PS5-69.99-18-true
+108-Metroid Dread-Switch-59.99-25-false
+109-Starfield-Xbox-69.99-80-false
+110-Baldurs Gate 3-PC-59.99-45-true
+111-Spider-Man 2-PS5-69.99-60-false
+112-Super Smash Bros Ultimate-Switch-59.99-90-false
+113-Forza Horizon 5-Xbox-59.99-35-false
+114-Resident Evil 4 Remake-PC-59.99-14-true
+115-The Witcher 3 Wild Hunt-PC-39.99-110-false
+116-Gran Turismo 7-PS5-69.99-22-false
+117-Pokemon Scarlet-Switch-59.99-85-false
+118-Ghost of Tsushima-PS5-49.99-40-true
+119-Gears 5-Xbox-39.99-60-false
+120-Red Dead Redemption 2-PC-59.99-95-true
