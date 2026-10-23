@@ -229,8 +229,8 @@ public class RetroVaultApp {
      * method: handleRemove
      * parameters: none
      * return: boolean
-     * purpose: Prompts for a target ID, attempts deletion, outputs results,
-     *          and displays the refreshed catalog. Satisfies Rubric Test 5.
+     * purpose: Prompts for a target ID, prompts for user confirmation before deletion
+     *          to address stakeholder feedback, executes removal, and displays the catalog.
      */
     public boolean handleRemove() {
         System.out.println("\n-- Remove Video Game Record --");
@@ -241,11 +241,29 @@ public class RetroVaultApp {
             return false;
         }
 
+        VideoGame target = inventory.findGameById(id);
+        if (target == null) {
+            System.out.println("Error: Game with ID " + id + " was not found in catalog.");
+            handleDisplayAll();
+            return false;
+        }
+
+        // Professor Feedback Implementation: Confirmation prompt before deleting
+        System.out.println("Found Record: " + target.getTitle() + " (" + target.getPlatform() + ")");
+        System.out.print("Are you sure you want to permanently delete this game? (y/n): ");
+        String confirm = scanner.nextLine().trim().toLowerCase();
+
+        if (!confirm.equals("y") && !confirm.equals("yes")) {
+            System.out.println("Deletion cancelled by user. Record preserved.");
+            handleDisplayAll();
+            return false;
+        }
+
         boolean removed = inventory.removeGame(id);
         if (removed) {
             System.out.println("Success: Game ID " + id + " has been permanently removed.");
         } else {
-            System.out.println("Error: Game with ID " + id + " was not found in catalog.");
+            System.out.println("Error: Could not remove game.");
         }
 
         handleDisplayAll();
