@@ -221,4 +221,4 @@ public class InventoryManagerTest {
         assertEquals(0.0, inventory.calculateInventoryTotal(), 0.001,
                 "Valuation on an empty collection must return 0.00 cleanly.");
     }
-} 
+}
