@@ -120,4 +120,4 @@ public class VideoGame {
         return String.format("ID: %-5d | Title: %-26s | Platform: %-8s | Price: $%7.2f | Stock: %-4d | Edition: %-9s",
                 gameId, title, platform, basePrice, quantityInStock, editionStr);
     }
-} 
+}
