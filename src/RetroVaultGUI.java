@@ -86,7 +86,7 @@ public class RetroVaultGUI extends JFrame {
      */
     public JPanel buildTopFileBar() {
         JPanel filePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        filePanel.setBorder(BorderFactory.createTitledBorder("Batch Ingestion (Test 2: Read Data)"));
+        filePanel.setBorder(BorderFactory.createTitledBorder("Batch Ingestion"));
         filePanel.setBackground(Color.WHITE);
 
         JLabel lblPath = new JLabel("File Path / Name:");
@@ -120,7 +120,7 @@ public class RetroVaultGUI extends JFrame {
      */
     public JPanel buildCenterTablePanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBorder(BorderFactory.createTitledBorder("Catalog Overview (Test 3: Display Data)"));
+        centerPanel.setBorder(BorderFactory.createTitledBorder("Catalog Overview"));
         centerPanel.setBackground(Color.WHITE);
 
         String[] columnNames = {"Game ID", "Title", "Platform", "Base Price ($)", "Stock Qty", "Collector Edition"};
@@ -160,7 +160,7 @@ public class RetroVaultGUI extends JFrame {
     public JPanel buildLeftFormPanel() {
         JPanel leftPanel = new JPanel(new GridBagLayout());
         leftPanel.setPreferredSize(new Dimension(300, 0));
-        leftPanel.setBorder(BorderFactory.createTitledBorder("Record Details (CRUD Form)"));
+        leftPanel.setBorder(BorderFactory.createTitledBorder("Record Details"));
         leftPanel.setBackground(Color.WHITE);
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -238,7 +238,7 @@ public class RetroVaultGUI extends JFrame {
      */
     public JPanel buildBottomActionBar() {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
-        bottomPanel.setBorder(BorderFactory.createTitledBorder("System Operations (CRUD & Actions)"));
+        bottomPanel.setBorder(BorderFactory.createTitledBorder("System Operations"));
         bottomPanel.setBackground(Color.WHITE);
 
         JButton btnUpdate = new JButton("Update Selected Record");

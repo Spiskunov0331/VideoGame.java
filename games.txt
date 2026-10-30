@@ -8,7 +8,7 @@
 108-Metroid Dread-Switch-59.99-25-false
 109-Starfield-Xbox-69.99-80-false
 110-Baldurs Gate 3-PC-59.99-45-true
-111-Spider-Man 2-PS5-69.99-60-false
+111-Spider Man 2-PS5-69.99-60-false
 112-Super Smash Bros Ultimate-Switch-59.99-90-false
 113-Forza Horizon 5-Xbox-59.99-35-false
 114-Resident Evil 4 Remake-PC-59.99-14-true
