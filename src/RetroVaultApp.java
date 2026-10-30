@@ -431,4 +431,4 @@ public class RetroVaultApp {
             return -1.0;
         }
     }
-} 
+}
