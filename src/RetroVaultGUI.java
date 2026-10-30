@@ -673,4 +673,4 @@ public class RetroVaultGUI extends JFrame {
         ));
         return true;
     }
-} 
+}
