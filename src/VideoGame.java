@@ -1,7 +1,7 @@
 /**
  * Steven Piskunov
  * CEN-3024C - Software Development 1
- * October 13, 2026
+ * October 30, 2026
  * VideoGame.java
  *
  * This class serves as the core domain model entity for the RetroVault DMS,

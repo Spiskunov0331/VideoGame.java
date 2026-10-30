@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Steven Piskunov
  * CEN-3024C - Software Development I
- * October 13, 2026
+ * October 30, 2026
  * InventoryManager.java
  *
  * This class provides business logic and in-memory storage for the RetroVault DMS,
