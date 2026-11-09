@@ -3,25 +3,28 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
  * Steven Piskunov
  * CEN-3024C - Software Development I
- * October 30, 2026
+ * November 8, 2026
  * RetroVaultGUI.java
  *
- * Graphical User Interface application controller for the RetroVault Video Game DMS.
- * This class builds an interactive, crash-proof desktop dashboard enabling users to
- * batch import from text files, view catalog tables, add, update, remove, and execute
- * dynamic valuation and discount calculations without using console prompts.
+ * Graphical User Interface (GUI) controller for Phase 4 of the RetroVault DMS.
+ * Connects directly to a user-supplied SQLite relational database file via JDBC,
+ * providing full CRUD operations, live synchronized tabular rendering, defensive
+ * input validation, and real-time custom valuation calculations.
  */
 public class RetroVaultGUI extends JFrame {
 
-    private InventoryManager inventory;
+    private DatabaseManager dbManager;
     private DefaultTableModel tableModel;
     private JTable gamesTable;
+
+    private JTextField txtDbPath;
+    private JLabel lblDbStatus;
 
     private JTextField txtId;
     private JTextField txtTitle;
@@ -29,10 +32,9 @@ public class RetroVaultGUI extends JFrame {
     private JTextField txtPrice;
     private JTextField txtStock;
     private JCheckBox chkCollector;
-    private JTextField txtFilePath;
 
     public RetroVaultGUI() {
-        this.inventory = new InventoryManager();
+        this.dbManager = new DatabaseManager();
         initializeUI();
     }
 
@@ -40,8 +42,8 @@ public class RetroVaultGUI extends JFrame {
      * method: main
      * parameters: String[] args
      * return: void
-     * purpose: Main entry point for Phase 3; instantiates the graphical desktop application
-     *          on the Swing Event Dispatch Thread and displays the GUI dashboard.
+     * purpose: Main entry point for Phase 4; instantiates the desktop dashboard
+     *          on the Swing Event Dispatch Thread (EDT).
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -54,21 +56,21 @@ public class RetroVaultGUI extends JFrame {
      * method: initializeUI
      * parameters: none
      * return: boolean
-     * purpose: Configures the main application window, visual styling, layout panels,
-     *          data tables, and interactive action buttons for all CRUD operations.
+     * purpose: Assembles the primary dashboard layout, database connection toolbar,
+     *          catalog table, form controls, and action buttons.
      */
     public boolean initializeUI() {
-        setTitle("RetroVault DMS - Video Game Inventory Management System");
+        setTitle("RetroVault DMS - Video Game Inventory Management (Phase 4: SQLite Database)");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1100, 700);
-        setMinimumSize(new Dimension(950, 600));
+        setSize(1150, 720);
+        setMinimumSize(new Dimension(1000, 620));
         setLocationRelativeTo(null);
 
         JPanel mainPanel = new JPanel(new BorderLayout(12, 12));
         mainPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
         mainPanel.setBackground(new Color(245, 247, 250));
 
-        mainPanel.add(buildTopFileBar(), BorderLayout.NORTH);
+        mainPanel.add(buildTopDatabaseBar(), BorderLayout.NORTH);
         mainPanel.add(buildCenterTablePanel(), BorderLayout.CENTER);
         mainPanel.add(buildLeftFormPanel(), BorderLayout.WEST);
         mainPanel.add(buildBottomActionBar(), BorderLayout.SOUTH);
@@ -78,49 +80,54 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: buildTopFileBar
+     * method: buildTopDatabaseBar
      * parameters: none
      * return: JPanel
-     * purpose: Constructs the file loading toolbar containing text input, file chooser browser,
-     *          and batch ingestion execution triggers. Satisfies Rubric Test 2.
+     * purpose: Constructs the database connection toolbar allowing users to enter or browse
+     *          for any SQLite file path without hardcoding. Satisfies Rubric Test 2.
      */
-    public JPanel buildTopFileBar() {
-        JPanel filePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        filePanel.setBorder(BorderFactory.createTitledBorder("Batch Ingestion"));
-        filePanel.setBackground(Color.WHITE);
+    public JPanel buildTopDatabaseBar() {
+        JPanel dbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        dbPanel.setBorder(BorderFactory.createTitledBorder("Database Connection"));
+        dbPanel.setBackground(Color.WHITE);
 
-        JLabel lblPath = new JLabel("File Path / Name:");
+        JLabel lblPath = new JLabel("SQLite DB File Path:");
         lblPath.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
-        txtFilePath = new JTextField("games.txt", 25);
-        txtFilePath.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtDbPath = new JTextField("retrovault.db", 26);
+        txtDbPath.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
         JButton btnBrowse = new JButton("Browse...");
         styleButton(btnBrowse, new Color(74, 85, 104));
-        btnBrowse.addActionListener(e -> handleBrowseFile());
+        btnBrowse.addActionListener(e -> handleBrowseDatabase());
 
-        JButton btnLoad = new JButton("Load Games File");
-        styleButton(btnLoad, new Color(43, 108, 176));
-        btnLoad.addActionListener(e -> handleLoadFile());
+        JButton btnConnect = new JButton("Connect & Load Database");
+        styleButton(btnConnect, new Color(43, 108, 176));
+        btnConnect.addActionListener(e -> handleConnectDatabase());
 
-        filePanel.add(lblPath);
-        filePanel.add(txtFilePath);
-        filePanel.add(btnBrowse);
-        filePanel.add(btnLoad);
+        lblDbStatus = new JLabel("Status: Disconnected");
+        lblDbStatus.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblDbStatus.setForeground(new Color(197, 48, 48));
 
-        return filePanel;
+        dbPanel.add(lblPath);
+        dbPanel.add(txtDbPath);
+        dbPanel.add(btnBrowse);
+        dbPanel.add(btnConnect);
+        dbPanel.add(lblDbStatus);
+
+        return dbPanel;
     }
 
     /**
      * method: buildCenterTablePanel
      * parameters: none
      * return: JPanel
-     * purpose: Creates the central tabular display rendering all 6 attributes of each
-     *          VideoGame record in sortable columns. Satisfies Rubric Test 3.
+     * purpose: Builds the central tabular view reflecting records directly queried
+     *          from the database. Satisfies Rubric Test 3.
      */
     public JPanel buildCenterTablePanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBorder(BorderFactory.createTitledBorder("Catalog Overview"));
+        centerPanel.setBorder(BorderFactory.createTitledBorder("Database Catalog Overview"));
         centerPanel.setBackground(Color.WHITE);
 
         String[] columnNames = {"Game ID", "Title", "Platform", "Base Price ($)", "Stock Qty", "Collector Edition"};
@@ -154,13 +161,13 @@ public class RetroVaultGUI extends JFrame {
      * method: buildLeftFormPanel
      * parameters: none
      * return: JPanel
-     * purpose: Builds the structured data entry form for adding and updating game attributes
-     *          with integrated input validation controls. Satisfies Rubric Test 4 & Test 6.
+     * purpose: Builds the record entry and modification form with input validation.
+     *          Satisfies Rubric Test 4 & Test 6.
      */
     public JPanel buildLeftFormPanel() {
         JPanel leftPanel = new JPanel(new GridBagLayout());
-        leftPanel.setPreferredSize(new Dimension(300, 0));
-        leftPanel.setBorder(BorderFactory.createTitledBorder("Record Details"));
+        leftPanel.setPreferredSize(new Dimension(310, 0));
+        leftPanel.setBorder(BorderFactory.createTitledBorder("Record Details (CRUD Form)"));
         leftPanel.setBackground(Color.WHITE);
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -214,7 +221,7 @@ public class RetroVaultGUI extends JFrame {
 
         row++;
         gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
-        JButton btnAdd = new JButton("Add Record (Create)");
+        JButton btnAdd = new JButton("Add Record to DB (Create)");
         styleButton(btnAdd, new Color(47, 133, 90));
         btnAdd.addActionListener(e -> handleAddRecord());
         leftPanel.add(btnAdd, gbc);
@@ -233,19 +240,23 @@ public class RetroVaultGUI extends JFrame {
      * method: buildBottomActionBar
      * parameters: none
      * return: JPanel
-     * purpose: Constructs the operational footer providing Update, Delete (with confirmation),
-     *          Custom Valuation action reporting, and clean Exit controls.
+     * purpose: Constructs the action toolbar containing Update, Delete, Valuation,
+     *          and Exit controls. Satisfies Rubric Test 5, 6, 7, and Test 1.
      */
     public JPanel buildBottomActionBar() {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
-        bottomPanel.setBorder(BorderFactory.createTitledBorder("System Operations"));
+        bottomPanel.setBorder(BorderFactory.createTitledBorder("Database Operations (CRUD & Actions)"));
         bottomPanel.setBackground(Color.WHITE);
 
-        JButton btnUpdate = new JButton("Update Selected Record");
+        JButton btnRefresh = new JButton("Refresh DB View");
+        styleButton(btnRefresh, new Color(49, 130, 206));
+        btnRefresh.addActionListener(e -> refreshTableData());
+
+        JButton btnUpdate = new JButton("Update Record in DB");
         styleButton(btnUpdate, new Color(214, 158, 46));
         btnUpdate.addActionListener(e -> handleUpdateRecord());
 
-        JButton btnDelete = new JButton("Delete Record");
+        JButton btnDelete = new JButton("Delete Record from DB");
         styleButton(btnDelete, new Color(229, 62, 62));
         btnDelete.addActionListener(e -> handleDeleteRecord());
 
@@ -257,6 +268,7 @@ public class RetroVaultGUI extends JFrame {
         styleButton(btnExit, new Color(26, 32, 44));
         btnExit.addActionListener(e -> handleExit());
 
+        bottomPanel.add(btnRefresh);
         bottomPanel.add(btnUpdate);
         bottomPanel.add(btnDelete);
         bottomPanel.add(btnCustom);
@@ -266,60 +278,70 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleBrowseFile
+     * method: handleBrowseDatabase
      * parameters: none
      * return: boolean
-     * purpose: Launches a native JFileChooser enabling the user to browse and select a text file.
+     * purpose: Opens a native JFileChooser to select any local SQLite database file (.db).
      */
-    public boolean handleBrowseFile() {
+    public boolean handleBrowseDatabase() {
         JFileChooser chooser = new JFileChooser(new File("."));
         int status = chooser.showOpenDialog(this);
         if (status == JFileChooser.APPROVE_OPTION) {
-            txtFilePath.setText(chooser.getSelectedFile().getPath());
+            txtDbPath.setText(chooser.getSelectedFile().getPath());
             return true;
         }
         return false;
     }
 
     /**
-     * method: handleLoadFile
+     * method: handleConnectDatabase
      * parameters: none
-     * return: int
-     * purpose: Reads and validates the user-specified text file path, loads valid records,
-     *          handles blank/invalid file names safely, and refreshes the catalog table.
+     * return: boolean
+     * purpose: Validates user database input, establishes the connection via JDBC,
+     *          updates the UI status, and populates the table. Satisfies Rubric Test 2.
      */
-    public int handleLoadFile() {
-        String path = txtFilePath.getText().trim();
+    public boolean handleConnectDatabase() {
+        String path = txtDbPath.getText().trim();
         if (path.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-                    "Error: File path cannot be blank. Please enter a valid file path or browse.",
-                    "Input Error", JOptionPane.ERROR_MESSAGE);
-            return -1;
+                    "Error: Database file path cannot be blank. Please enter a valid SQLite path.",
+                    "Connection Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
 
         try {
-            int imported = inventory.loadGamesFromFile(path);
-            refreshTableData();
+            boolean connected = dbManager.connect(path);
+            if (connected) {
+                lblDbStatus.setText("Status: Connected (" + new File(path).getName() + ")");
+                lblDbStatus.setForeground(new Color(47, 133, 90));
+                refreshTableData();
+                JOptionPane.showMessageDialog(this,
+                        "Successfully connected to SQLite database:\n" + path,
+                        "Database Connected", JOptionPane.INFORMATION_MESSAGE);
+                return true;
+            }
+        } catch (SQLException ex) {
+            lblDbStatus.setText("Status: Connection Failed");
+            lblDbStatus.setForeground(new Color(197, 48, 48));
             JOptionPane.showMessageDialog(this,
-                    "Successfully imported " + imported + " video game records from:\n" + path,
-                    "Batch Load Complete", JOptionPane.INFORMATION_MESSAGE);
-            return imported;
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this,
-                    "File Error: " + e.getMessage(),
-                    "File Load Failed", JOptionPane.ERROR_MESSAGE);
-            return -1;
+                    "Database Error: " + ex.getMessage(),
+                    "Connection Failed", JOptionPane.ERROR_MESSAGE);
         }
+        return false;
     }
 
     /**
      * method: handleAddRecord
      * parameters: none
      * return: boolean
-     * purpose: Validates all six form attributes, prevents duplicate IDs and crashes,
-     *          instantiates the VideoGame object, and updates the table. Satisfies Rubric Test 4.
+     * purpose: Validates all input fields and executes an INSERT into the database.
+     *          Satisfies Rubric Test 4.
      */
     public boolean handleAddRecord() {
+        if (!ensureConnected()) {
+            return false;
+        }
+
         String idStr = txtId.getText().trim();
         String title = txtTitle.getText().trim();
         String platform = txtPlatform.getText().trim();
@@ -348,9 +370,16 @@ public class RetroVaultGUI extends JFrame {
             return false;
         }
 
-        if (inventory.findGameById(id) != null) {
-            JOptionPane.showMessageDialog(this, "Error: Game ID '" + id + "' already exists in catalog. IDs must be unique.",
-                    "Duplicate Key Error", JOptionPane.ERROR_MESSAGE);
+        try {
+            if (dbManager.findGameById(id) != null) {
+                JOptionPane.showMessageDialog(this,
+                        "Error: Game ID '" + id + "' already exists in the database. Primary keys must be unique.",
+                        "Duplicate Key Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Lookup Error: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
@@ -383,13 +412,19 @@ public class RetroVaultGUI extends JFrame {
         }
 
         VideoGame game = new VideoGame(id, title, platform, price, stock, isCollector);
-        boolean added = inventory.addGame(game);
-        if (added) {
-            refreshTableData();
-            clearFormFields();
-            JOptionPane.showMessageDialog(this, "Video Game '" + title + "' added successfully!",
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-            return true;
+        try {
+            boolean inserted = dbManager.addGame(game);
+            if (inserted) {
+                refreshTableData();
+                clearFormFields();
+                JOptionPane.showMessageDialog(this,
+                        "Record for '" + title + "' (ID: " + id + ") successfully written to database!",
+                        "Record Created", JOptionPane.INFORMATION_MESSAGE);
+                return true;
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Database Insert Error: " + ex.getMessage(),
+                    "Insert Failed", JOptionPane.ERROR_MESSAGE);
         }
         return false;
     }
@@ -398,10 +433,14 @@ public class RetroVaultGUI extends JFrame {
      * method: handleUpdateRecord
      * parameters: none
      * return: boolean
-     * purpose: Updates editable attributes of an existing game selected from the table or form,
-     *          safely validating data types and refreshing the display. Satisfies Rubric Test 6.
+     * purpose: Updates an existing database record using parameterized SQL.
+     *          Satisfies Rubric Test 6.
      */
     public boolean handleUpdateRecord() {
+        if (!ensureConnected()) {
+            return false;
+        }
+
         String idStr = txtId.getText().trim();
         if (idStr.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter or select a Game ID to update.",
@@ -418,72 +457,85 @@ public class RetroVaultGUI extends JFrame {
             return false;
         }
 
-        VideoGame target = inventory.findGameById(id);
-        if (target == null) {
-            JOptionPane.showMessageDialog(this, "Error: Game ID " + id + " was not found in the catalog.",
-                    "Record Not Found", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-
-        String newTitle = txtTitle.getText().trim();
-        String newPlatform = txtPlatform.getText().trim();
-        String priceStr = txtPrice.getText().trim();
-        String stockStr = txtStock.getText().trim();
-
-        if (newTitle.isEmpty() || newPlatform.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Attributes cannot be blank.",
-                    "Validation Error", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
-        double newPrice;
-        int newStock;
         try {
-            newPrice = Double.parseDouble(priceStr);
-            if (newPrice < 0.0) {
-                JOptionPane.showMessageDialog(this, "Price cannot be negative.",
+            VideoGame target = dbManager.findGameById(id);
+            if (target == null) {
+                JOptionPane.showMessageDialog(this, "Error: Game ID " + id + " was not found in the database.",
+                        "Record Not Found", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            String newTitle = txtTitle.getText().trim();
+            String newPlatform = txtPlatform.getText().trim();
+            String priceStr = txtPrice.getText().trim();
+            String stockStr = txtStock.getText().trim();
+
+            if (newTitle.isEmpty() || newPlatform.isEmpty() || priceStr.isEmpty() || stockStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Attributes cannot be blank.",
                         "Validation Error", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid decimal format for price.",
-                    "Validation Error", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
 
-        try {
-            newStock = Integer.parseInt(stockStr);
-            if (newStock < 0) {
-                JOptionPane.showMessageDialog(this, "Stock quantity cannot be negative.",
+            double newPrice;
+            try {
+                newPrice = Double.parseDouble(priceStr);
+                if (newPrice < 0.0) {
+                    JOptionPane.showMessageDialog(this, "Base price cannot be negative.",
+                            "Validation Error", JOptionPane.WARNING_MESSAGE);
+                    return false;
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid decimal format for price.",
                         "Validation Error", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid integer format for stock.",
-                    "Validation Error", JOptionPane.WARNING_MESSAGE);
-            return false;
+
+            int newStock;
+            try {
+                newStock = Integer.parseInt(stockStr);
+                if (newStock < 0) {
+                    JOptionPane.showMessageDialog(this, "Stock quantity cannot be negative.",
+                            "Validation Error", JOptionPane.WARNING_MESSAGE);
+                    return false;
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid integer format for stock.",
+                        "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+            target.setTitle(newTitle);
+            target.setPlatform(newPlatform);
+            target.setBasePrice(newPrice);
+            target.setQuantityInStock(newStock);
+            target.setCollectorEdition(chkCollector.isSelected());
+
+            boolean updated = dbManager.updateGame(target);
+            if (updated) {
+                refreshTableData();
+                JOptionPane.showMessageDialog(this, "Record " + id + " updated in database successfully!",
+                        "Update Complete", JOptionPane.INFORMATION_MESSAGE);
+                return true;
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Database Update Error: " + ex.getMessage(),
+                    "Update Failed", JOptionPane.ERROR_MESSAGE);
         }
-
-        target.setTitle(newTitle);
-        target.setPlatform(newPlatform);
-        target.setBasePrice(newPrice);
-        target.setQuantityInStock(newStock);
-        target.setCollectorEdition(chkCollector.isSelected());
-
-        refreshTableData();
-        JOptionPane.showMessageDialog(this, "Record " + id + " successfully updated!",
-                "Update Complete", JOptionPane.INFORMATION_MESSAGE);
-        return true;
+        return false;
     }
 
     /**
      * method: handleDeleteRecord
      * parameters: none
      * return: boolean
-     * purpose: Purges a record by ID after prompting for user confirmation, verifying the record
-     *          no longer exists, and refreshing the catalog table. Satisfies Rubric Test 5.
+     * purpose: Prompts for confirmation and purges the selected record from the SQLite database.
+     *          Satisfies Rubric Test 5.
      */
     public boolean handleDeleteRecord() {
+        if (!ensureConnected()) {
+            return false;
+        }
+
         String idStr = txtId.getText().trim();
         if (idStr.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter or select a Game ID to delete.",
@@ -500,28 +552,33 @@ public class RetroVaultGUI extends JFrame {
             return false;
         }
 
-        VideoGame target = inventory.findGameById(id);
-        if (target == null) {
-            JOptionPane.showMessageDialog(this, "Error: Game ID " + id + " does not exist in the system.",
-                    "Not Found", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+        try {
+            VideoGame target = dbManager.findGameById(id);
+            if (target == null) {
+                JOptionPane.showMessageDialog(this, "Error: Game ID " + id + " does not exist in the database.",
+                        "Not Found", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
 
-        int choice = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to permanently delete '" + target.getTitle() + "' (ID: " + id + ")?",
-                "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            int choice = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to permanently delete '" + target.getTitle() + "' (ID: " + id + ") from the database?",
+                    "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
-        if (choice != JOptionPane.YES_OPTION) {
-            return false;
-        }
+            if (choice != JOptionPane.YES_OPTION) {
+                return false;
+            }
 
-        boolean removed = inventory.removeGame(id);
-        if (removed) {
-            refreshTableData();
-            clearFormFields();
-            JOptionPane.showMessageDialog(this, "Game record ID " + id + " successfully deleted.",
-                    "Record Deleted", JOptionPane.INFORMATION_MESSAGE);
-            return true;
+            boolean removed = dbManager.deleteGame(id);
+            if (removed) {
+                refreshTableData();
+                clearFormFields();
+                JOptionPane.showMessageDialog(this, "Record ID " + id + " purged from database successfully.",
+                        "Record Deleted", JOptionPane.INFORMATION_MESSAGE);
+                return true;
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Database Deletion Error: " + ex.getMessage(),
+                    "Delete Failed", JOptionPane.ERROR_MESSAGE);
         }
         return false;
     }
@@ -530,99 +587,103 @@ public class RetroVaultGUI extends JFrame {
      * method: handleCustomAction
      * parameters: none
      * return: double
-     * purpose: Executes inventory valuation and wholesale discount calculations across the catalog
-     *          and displays a formatted summary dialog. Satisfies Rubric Test 7.
+     * purpose: Queries all live records from SQLite, computes line-item valuations with
+     *          collector surcharges and wholesale markdowns, and displays the report dialog.
+     *          Satisfies Rubric Test 7.
      */
     public double handleCustomAction() {
-        List<VideoGame> games = inventory.getAllGames();
-        if (games.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Catalog is currently empty. Total inventory valuation is $0.00.",
-                    "Inventory Valuation", JOptionPane.INFORMATION_MESSAGE);
+        if (!ensureConnected()) {
             return 0.0;
         }
 
-        StringBuilder report = new StringBuilder();
-        report.append(String.format("%-8s | %-25s | %-12s | %s\n", "ID", "Title", "Line Value", "Notes"));
-        report.append("--------------------------------------------------------------------------------------\n");
-
-        double total = 0.0;
-        for (VideoGame g : games) {
-            double lineVal = g.calculateTotalValuation();
-            total += lineVal;
-            String note = "";
-            if (g.isCollectorEdition() && g.getQuantityInStock() > 50) {
-                note = "+15% Collector Surcharge, -10% Wholesale Discount";
-            } else if (g.isCollectorEdition()) {
-                note = "+15% Collector Surcharge";
-            } else if (g.getQuantityInStock() > 50) {
-                note = "-10% Wholesale Discount";
+        try {
+            List<VideoGame> games = dbManager.getAllGames();
+            if (games.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Database table is empty. Total inventory valuation is $0.00.",
+                        "Inventory Valuation", JOptionPane.INFORMATION_MESSAGE);
+                return 0.0;
             }
 
-            report.append(String.format("%-8d | %-25s | $%10.2f | %s\n",
-                    g.getGameId(),
-                    g.getTitle().length() > 25 ? g.getTitle().substring(0, 22) + "..." : g.getTitle(),
-                    lineVal,
-                    note));
+            StringBuilder report = new StringBuilder();
+            report.append(String.format("%-8s | %-25s | %-12s | %s\n", "ID", "Title", "Line Value", "Notes"));
+            report.append("--------------------------------------------------------------------------------------\n");
+
+            double total = 0.0;
+            for (VideoGame g : games) {
+                double lineVal = g.calculateTotalValuation();
+                total += lineVal;
+                String note = "";
+                if (g.isCollectorEdition() && g.getQuantityInStock() > 50) {
+                    note = "+15% Collector Surcharge, -10% Wholesale Discount";
+                } else if (g.isCollectorEdition()) {
+                    note = "+15% Collector Surcharge";
+                } else if (g.getQuantityInStock() > 50) {
+                    note = "-10% Wholesale Discount";
+                }
+
+                report.append(String.format("%-8d | %-25s | $%10.2f | %s\n",
+                        g.getGameId(),
+                        g.getTitle().length() > 25 ? g.getTitle().substring(0, 22) + "..." : g.getTitle(),
+                        lineVal,
+                        note));
+            }
+
+            report.append("======================================================================================\n");
+            report.append(String.format("TOTAL DATABASE INVENTORY VALUATION: $%.2f\n", total));
+
+            JTextArea textArea = new JTextArea(report.toString());
+            textArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+            textArea.setEditable(false);
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setPreferredSize(new Dimension(680, 360));
+
+            JOptionPane.showMessageDialog(this, scrollPane, "Database Valuation & Discount Report", JOptionPane.INFORMATION_MESSAGE);
+            return total;
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Calculation Error: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
+            return 0.0;
         }
-
-        report.append("======================================================================================\n");
-        report.append(String.format("TOTAL CUMULATIVE CATALOG VALUATION: $%.2f\n", total));
-
-        JTextArea textArea = new JTextArea(report.toString());
-        textArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(650, 350));
-
-        JOptionPane.showMessageDialog(this, scrollPane, "Inventory Valuation & Discount Report", JOptionPane.INFORMATION_MESSAGE);
-        return total;
-    }
-
-    /**
-     * method: handleExit
-     * parameters: none
-     * return: boolean
-     * purpose: Prompts confirmation before closing the application cleanly. Satisfies GUI Layout & Test 1.
-     */
-    public boolean handleExit() {
-        int choice = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to exit RetroVault DMS?",
-                "Exit Confirmation", JOptionPane.YES_NO_OPTION);
-        if (choice == JOptionPane.YES_OPTION) {
-            System.exit(0);
-            return true;
-        }
-        return false;
     }
 
     /**
      * method: refreshTableData
      * parameters: none
      * return: int
-     * purpose: Clears and repopulates the JTable rows from the InventoryManager list.
+     * purpose: Queries the SQLite table and updates the JTable view in real time.
      */
     public int refreshTableData() {
         tableModel.setRowCount(0);
-        List<VideoGame> games = inventory.getAllGames();
-        for (VideoGame g : games) {
-            tableModel.addRow(new Object[]{
-                    g.getGameId(),
-                    g.getTitle(),
-                    g.getPlatform(),
-                    String.format("%.2f", g.getBasePrice()),
-                    g.getQuantityInStock(),
-                    g.isCollectorEdition() ? "Yes (Collector)" : "No (Standard)"
-            });
+        if (!dbManager.isConnected()) {
+            return 0;
         }
-        return games.size();
+
+        try {
+            List<VideoGame> games = dbManager.getAllGames();
+            for (VideoGame g : games) {
+                tableModel.addRow(new Object[]{
+                        g.getGameId(),
+                        g.getTitle(),
+                        g.getPlatform(),
+                        String.format("%.2f", g.getBasePrice()),
+                        g.getQuantityInStock(),
+                        g.isCollectorEdition() ? "Yes (Collector)" : "No (Standard)"
+                });
+            }
+            return games.size();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Refresh Error: " + ex.getMessage(),
+                    "Database Read Error", JOptionPane.ERROR_MESSAGE);
+            return 0;
+        }
     }
 
     /**
      * method: populateFormFromSelectedRow
      * parameters: none
      * return: boolean
-     * purpose: Synchronizes the left-hand form text fields with the row currently selected in the table.
+     * purpose: Synchronizes input text fields with the selected table row.
      */
     public boolean populateFormFromSelectedRow() {
         int selectedRow = gamesTable.getSelectedRow();
@@ -643,7 +704,7 @@ public class RetroVaultGUI extends JFrame {
      * method: clearFormFields
      * parameters: none
      * return: boolean
-     * purpose: Clears all text input fields in the CRUD form and resets table selection.
+     * purpose: Clears text inputs and resets active table selection.
      */
     public boolean clearFormFields() {
         txtId.setText("");
@@ -657,10 +718,44 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
+     * method: handleExit
+     * parameters: none
+     * return: boolean
+     * purpose: Safely closes the database connection and exits the application.
+     */
+    public boolean handleExit() {
+        int choice = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to close RetroVault DMS?",
+                "Exit Confirmation", JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) {
+            dbManager.closeConnection();
+            System.exit(0);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * method: ensureConnected
+     * parameters: none
+     * return: boolean
+     * purpose: Checks if a valid database connection is open, prompting the user if not.
+     */
+    public boolean ensureConnected() {
+        if (!dbManager.isConnected()) {
+            JOptionPane.showMessageDialog(this,
+                    "Database is not connected. Please connect to a database file at the top first.",
+                    "Connection Required", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * method: styleButton
      * parameters: JButton btn, Color bg
      * return: boolean
-     * purpose: Applies consistent colors, fonts, and borders to buttons for UI/UX readability.
+     * purpose: Formats buttons for visual hierarchy and readability.
      */
     public boolean styleButton(JButton btn, Color bg) {
         btn.setBackground(bg);
