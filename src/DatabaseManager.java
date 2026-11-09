@@ -14,7 +14,7 @@ import java.util.List;
  * November 8, 2026
  * DatabaseManager.java
  *
- * This Data Access Object (DAO) class manages SQLite database connectivity via JDBC
+ * This Data Access Object class manages SQLite database connectivity via JDBC
  * for the RetroVault DMS. It provides CRUD query execution, connection lifecycle management,
  * and parameterized SQL statements to safeguard against SQL injection and database corruption.
  */

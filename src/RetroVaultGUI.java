@@ -12,7 +12,7 @@ import java.util.List;
  * November 8, 2026
  * RetroVaultGUI.java
  *
- * Graphical User Interface (GUI) controller for Phase 4 of the RetroVault DMS.
+ * Graphical User Interface controller for Phase 4 of the RetroVault DMS.
  * Connects directly to a user-supplied SQLite relational database file via JDBC,
  * providing full CRUD operations, live synchronized tabular rendering, defensive
  * input validation, and real-time custom valuation calculations.
@@ -43,7 +43,7 @@ public class RetroVaultGUI extends JFrame {
      * parameters: String[] args
      * return: void
      * purpose: Main entry point for Phase 4; instantiates the desktop dashboard
-     *          on the Swing Event Dispatch Thread (EDT).
+     *          on the Swing Event Dispatch Thread.
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -123,7 +123,7 @@ public class RetroVaultGUI extends JFrame {
      * parameters: none
      * return: JPanel
      * purpose: Builds the central tabular view reflecting records directly queried
-     *          from the database. Satisfies Rubric Test 3.
+     *          from the database.
      */
     public JPanel buildCenterTablePanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
@@ -162,7 +162,6 @@ public class RetroVaultGUI extends JFrame {
      * parameters: none
      * return: JPanel
      * purpose: Builds the record entry and modification form with input validation.
-     *          Satisfies Rubric Test 4 & Test 6.
      */
     public JPanel buildLeftFormPanel() {
         JPanel leftPanel = new JPanel(new GridBagLayout());
@@ -241,7 +240,7 @@ public class RetroVaultGUI extends JFrame {
      * parameters: none
      * return: JPanel
      * purpose: Constructs the action toolbar containing Update, Delete, Valuation,
-     *          and Exit controls. Satisfies Rubric Test 5, 6, 7, and Test 1.
+     *          and Exit controls.
      */
     public JPanel buildBottomActionBar() {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
@@ -298,7 +297,7 @@ public class RetroVaultGUI extends JFrame {
      * parameters: none
      * return: boolean
      * purpose: Validates user database input, establishes the connection via JDBC,
-     *          updates the UI status, and populates the table. Satisfies Rubric Test 2.
+     *          updates the UI status, and populates the table.
      */
     public boolean handleConnectDatabase() {
         String path = txtDbPath.getText().trim();
@@ -335,7 +334,6 @@ public class RetroVaultGUI extends JFrame {
      * parameters: none
      * return: boolean
      * purpose: Validates all input fields and executes an INSERT into the database.
-     *          Satisfies Rubric Test 4.
      */
     public boolean handleAddRecord() {
         if (!ensureConnected()) {
@@ -434,7 +432,6 @@ public class RetroVaultGUI extends JFrame {
      * parameters: none
      * return: boolean
      * purpose: Updates an existing database record using parameterized SQL.
-     *          Satisfies Rubric Test 6.
      */
     public boolean handleUpdateRecord() {
         if (!ensureConnected()) {
@@ -529,7 +526,6 @@ public class RetroVaultGUI extends JFrame {
      * parameters: none
      * return: boolean
      * purpose: Prompts for confirmation and purges the selected record from the SQLite database.
-     *          Satisfies Rubric Test 5.
      */
     public boolean handleDeleteRecord() {
         if (!ensureConnected()) {
@@ -589,7 +585,6 @@ public class RetroVaultGUI extends JFrame {
      * return: double
      * purpose: Queries all live records from SQLite, computes line-item valuations with
      *          collector surcharges and wholesale markdowns, and displays the report dialog.
-     *          Satisfies Rubric Test 7.
      */
     public double handleCustomAction() {
         if (!ensureConnected()) {
