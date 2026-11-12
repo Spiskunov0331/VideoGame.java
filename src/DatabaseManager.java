@@ -23,17 +23,21 @@ public class DatabaseManager {
     private Connection connection;
     private String databasePath;
 
+    /**
+     * Constructs an uninitialized DatabaseManager instance with null connection and path references.
+     */
     public DatabaseManager() {
         this.connection = null;
         this.databasePath = null;
     }
 
     /**
-     * method: connect
-     * parameters: String dbPath
-     * return: boolean
-     * purpose: Establishes a JDBC connection to the SQLite database file supplied by the user,
-     *          creates the 'games' table if it does not yet exist, and returns true upon success.
+     * Establishes a JDBC connection to the SQLite database file supplied by the user,
+     * creates the 'games' table if it does not yet exist, and returns true upon success.
+     *
+     * @param dbPath the file path to the SQLite database
+     * @return true if connection and table initialization succeed
+     * @throws SQLException if the path is blank or connection fails
      */
     public boolean connect(String dbPath) throws SQLException {
         if (dbPath == null || dbPath.trim().isEmpty()) {
@@ -51,11 +55,11 @@ public class DatabaseManager {
     }
 
     /**
-     * method: initializeTable
-     * parameters: none
-     * return: boolean
-     * purpose: Executes a DDL statement ensuring the 'games' relation exists with all
-     *          six required domain attributes and a primary key constraint.
+     * Executes a DDL statement ensuring the 'games' relation exists with all
+     * six required domain attributes and a primary key constraint.
+     *
+     * @return true if table creation succeeds
+     * @throws SQLException if a database access error occurs
      */
     public boolean initializeTable() throws SQLException {
         if (connection == null || connection.isClosed()) {
@@ -78,11 +82,11 @@ public class DatabaseManager {
     }
 
     /**
-     * method: getAllGames
-     * parameters: none
-     * return: List<VideoGame>
-     * purpose: Queries all rows from the 'games' table, reconstructs VideoGame domain objects,
-     *          and returns an in-memory list sorted ascending by gameId.
+     * Queries all rows from the 'games' table, reconstructs VideoGame domain objects,
+     * and returns an in-memory list sorted ascending by gameId.
+     *
+     * @return a List of VideoGame objects retrieved from the database
+     * @throws SQLException if a database access error occurs
      */
     public List<VideoGame> getAllGames() throws SQLException {
         List<VideoGame> list = new ArrayList<>();
@@ -111,10 +115,11 @@ public class DatabaseManager {
     }
 
     /**
-     * method: addGame
-     * parameters: VideoGame game
-     * return: boolean
-     * purpose: Inserts a new video game record into the database table using a parameterized statement.
+     * Inserts a new video game record into the database table using a parameterized statement.
+     *
+     * @param game the VideoGame object to insert
+     * @return true if the insert modified at least one row
+     * @throws SQLException if a database access error occurs
      */
     public boolean addGame(VideoGame game) throws SQLException {
         if (connection == null || connection.isClosed() || game == null) {
@@ -137,11 +142,12 @@ public class DatabaseManager {
     }
 
     /**
-     * method: updateGame
-     * parameters: VideoGame game
-     * return: boolean
-     * purpose: Updates the title, platform, price, stock, and collector edition status
-     *          for an existing game identified by its primary key gameId.
+     * Updates the title, platform, price, stock, and collector edition status
+     * for an existing game identified by its primary key gameId.
+     *
+     * @param game the VideoGame object containing updated attributes
+     * @return true if the update modified at least one row
+     * @throws SQLException if a database access error occurs
      */
     public boolean updateGame(VideoGame game) throws SQLException {
         if (connection == null || connection.isClosed() || game == null) {
@@ -164,10 +170,11 @@ public class DatabaseManager {
     }
 
     /**
-     * method: deleteGame
-     * parameters: int gameId
-     * return: boolean
-     * purpose: Purges a single record from the database table matching the specified gameId.
+     * Purges a single record from the database table matching the specified gameId.
+     *
+     * @param gameId the primary key of the game to delete
+     * @return true if the delete modified at least one row
+     * @throws SQLException if a database access error occurs
      */
     public boolean deleteGame(int gameId) throws SQLException {
         if (connection == null || connection.isClosed()) {
@@ -183,11 +190,12 @@ public class DatabaseManager {
     }
 
     /**
-     * method: findGameById
-     * parameters: int gameId
-     * return: VideoGame
-     * purpose: Queries the database for a specific record matching gameId; returns the reconstructed
-     *          VideoGame or null if no matching row exists.
+     * Queries the database for a specific record matching gameId; returns the reconstructed
+     * VideoGame or null if no matching row exists.
+     *
+     * @param gameId the primary key to search for
+     * @return the matching VideoGame object, or null if not found
+     * @throws SQLException if a database access error occurs
      */
     public VideoGame findGameById(int gameId) throws SQLException {
         if (connection == null || connection.isClosed()) {
@@ -216,10 +224,9 @@ public class DatabaseManager {
     }
 
     /**
-     * method: isConnected
-     * parameters: none
-     * return: boolean
-     * purpose: Checks whether an active JDBC connection currently exists.
+     * Checks whether an active JDBC connection currently exists.
+     *
+     * @return true if connected and open, false otherwise
      */
     public boolean isConnected() {
         try {
@@ -230,10 +237,9 @@ public class DatabaseManager {
     }
 
     /**
-     * method: closeConnection
-     * parameters: none
-     * return: boolean
-     * purpose: Safely releases and closes active database resources.
+     * Safely releases and closes active database resources.
+     *
+     * @return true if closed successfully or already closed
      */
     public boolean closeConnection() {
         if (connection != null) {
@@ -249,10 +255,9 @@ public class DatabaseManager {
     }
 
     /**
-     * method: getDatabasePath
-     * parameters: none
-     * return: String
-     * purpose: Returns the active database connection string path.
+     * Returns the active database connection string path.
+     *
+     * @return the database path string
      */
     public String getDatabasePath() {
         return databasePath;

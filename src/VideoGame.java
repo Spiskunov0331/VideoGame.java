@@ -17,6 +17,16 @@ public class VideoGame {
     private int quantityInStock;
     private boolean isCollectorEdition;
 
+    /**
+     * Constructs a new VideoGame instance with specified identifiers, title, platform, pricing, stock, and edition.
+     *
+     * @param gameId             the unique primary identifier for the game
+     * @param title              the title of the video game
+     * @param platform           the gaming platform or console
+     * @param basePrice          the baseline retail price in USD
+     * @param quantityInStock    the current inventory count
+     * @param isCollectorEdition true if the game is a collector/special edition, false otherwise
+     */
     public VideoGame(int gameId, String title, String platform, double basePrice,
                      int quantityInStock, boolean isCollectorEdition) {
         this.gameId = gameId;
@@ -27,30 +37,66 @@ public class VideoGame {
         this.isCollectorEdition = isCollectorEdition;
     }
 
+    /**
+     * Returns the unique game ID.
+     *
+     * @return the game ID integer
+     */
     public int getGameId() {
         return gameId;
     }
 
+    /**
+     * Returns the video game title.
+     *
+     * @return the title string
+     */
     public String getTitle() {
         return title;
     }
 
+    /**
+     * Returns the gaming platform.
+     *
+     * @return the platform string
+     */
     public String getPlatform() {
         return platform;
     }
 
+    /**
+     * Returns the baseline retail price.
+     *
+     * @return the base price value
+     */
     public double getBasePrice() {
         return basePrice;
     }
 
+    /**
+     * Returns the stock quantity.
+     *
+     * @return the stock count integer
+     */
     public int getQuantityInStock() {
         return quantityInStock;
     }
 
+    /**
+     * Checks if the game is a collector edition.
+     *
+     * @return true if collector edition, false otherwise
+     */
     public boolean isCollectorEdition() {
         return isCollectorEdition;
     }
 
+    /**
+     * Updates the video game title if valid.
+     *
+     * @param title the new title string
+     * @return true if updated successfully, false if null or blank
+     */
     public boolean setTitle(String title) {
         if (title != null && !title.trim().isEmpty()) {
             this.title = title.trim();
@@ -59,6 +105,12 @@ public class VideoGame {
         return false;
     }
 
+    /**
+     * Updates the gaming platform if valid.
+     *
+     * @param platform the new platform string
+     * @return true if updated successfully, false if null or blank
+     */
     public boolean setPlatform(String platform) {
         if (platform != null && !platform.trim().isEmpty()) {
             this.platform = platform.trim();
@@ -67,6 +119,12 @@ public class VideoGame {
         return false;
     }
 
+    /**
+     * Updates the base retail price if non-negative.
+     *
+     * @param basePrice the new base price value
+     * @return true if updated successfully, false if negative
+     */
     public boolean setBasePrice(double basePrice) {
         if (basePrice >= 0.0) {
             this.basePrice = basePrice;
@@ -75,6 +133,12 @@ public class VideoGame {
         return false;
     }
 
+    /**
+     * Updates the quantity in stock if non-negative.
+     *
+     * @param quantityInStock the new stock count
+     * @return true if updated successfully, false if negative
+     */
     public boolean setQuantityInStock(int quantityInStock) {
         if (quantityInStock >= 0) {
             this.quantityInStock = quantityInStock;
@@ -83,18 +147,23 @@ public class VideoGame {
         return false;
     }
 
+    /**
+     * Sets the collector edition status.
+     *
+     * @param isCollectorEdition boolean value for collector edition
+     * @return true always
+     */
     public boolean setCollectorEdition(boolean isCollectorEdition) {
         this.isCollectorEdition = isCollectorEdition;
         return true;
     }
 
     /**
-     * method: calculateTotalValuation
-     * parameters: none
-     * return: double
-     * purpose: Computes total inventory valuation for this game line, adding a 15%
-     *          surcharge for collector editions and applying a 10% wholesale markdown
-     *          if the quantity in stock exceeds 50 units.
+     * Computes total inventory valuation for this game line, adding a 15%
+     * surcharge for collector editions and applying a 10% wholesale markdown
+     * if the quantity in stock exceeds 50 units.
+     *
+     * @return the calculated total monetary valuation for this game record
      */
     public double calculateTotalValuation() {
         double unitPrice = this.basePrice;
@@ -109,10 +178,9 @@ public class VideoGame {
     }
 
     /**
-     * method: toString
-     * parameters: none
-     * return: String
-     * purpose: Returns a clean, aligned tabular row representation of all six game attributes.
+     * Returns a clean, aligned tabular row representation of all six game attributes.
+     *
+     * @return formatted string containing game attributes
      */
     @Override
     public String toString() {

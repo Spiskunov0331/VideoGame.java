@@ -33,17 +33,20 @@ public class RetroVaultGUI extends JFrame {
     private JTextField txtStock;
     private JCheckBox chkCollector;
 
+    /**
+     * Constructs the RetroVaultGUI application window, instantiating the DatabaseManager
+     * and initializing all UI components.
+     */
     public RetroVaultGUI() {
         this.dbManager = new DatabaseManager();
         initializeUI();
     }
 
     /**
-     * method: main
-     * parameters: String[] args
-     * return: void
-     * purpose: Main entry point for Phase 4; instantiates the desktop dashboard
-     *          on the Swing Event Dispatch Thread.
+     * Main entry point for Phase 4; instantiates the desktop dashboard
+     * on the Swing Event Dispatch Thread.
+     *
+     * @param args command line arguments
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -53,11 +56,10 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: initializeUI
-     * parameters: none
-     * return: boolean
-     * purpose: Assembles the primary dashboard layout, database connection toolbar,
-     *          catalog table, form controls, and action buttons.
+     * Assembles the primary dashboard layout, database connection toolbar,
+     * catalog table, form controls, and action buttons.
+     *
+     * @return true upon successful UI assembly
      */
     public boolean initializeUI() {
         setTitle("RetroVault DMS - Video Game Inventory Management (Phase 4: SQLite Database)");
@@ -80,11 +82,10 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: buildTopDatabaseBar
-     * parameters: none
-     * return: JPanel
-     * purpose: Constructs the database connection toolbar allowing users to enter or browse
-     *          for any SQLite file path without hardcoding. Satisfies Rubric Test 2.
+     * Constructs the database connection toolbar allowing users to enter or browse
+     * for any SQLite file path without hardcoding. Satisfies Rubric Test 2.
+     *
+     * @return a JPanel containing connection controls
      */
     public JPanel buildTopDatabaseBar() {
         JPanel dbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
@@ -119,11 +120,10 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: buildCenterTablePanel
-     * parameters: none
-     * return: JPanel
-     * purpose: Builds the central tabular view reflecting records directly queried
-     *          from the database.
+     * Builds the central tabular view reflecting records directly queried
+     * from the database.
+     *
+     * @return a JPanel containing the JTable inside a scroll pane
      */
     public JPanel buildCenterTablePanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
@@ -158,10 +158,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: buildLeftFormPanel
-     * parameters: none
-     * return: JPanel
-     * purpose: Builds the record entry and modification form with input validation.
+     * Builds the record entry and modification form with input validation.
+     *
+     * @return a JPanel containing the form components
      */
     public JPanel buildLeftFormPanel() {
         JPanel leftPanel = new JPanel(new GridBagLayout());
@@ -236,11 +235,10 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: buildBottomActionBar
-     * parameters: none
-     * return: JPanel
-     * purpose: Constructs the action toolbar containing Update, Delete, Valuation,
-     *          and Exit controls.
+     * Constructs the action toolbar containing Update, Delete, Valuation,
+     * and Exit controls.
+     *
+     * @return a JPanel containing action buttons
      */
     public JPanel buildBottomActionBar() {
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 10));
@@ -277,10 +275,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleBrowseDatabase
-     * parameters: none
-     * return: boolean
-     * purpose: Opens a native JFileChooser to select any local SQLite database file (.db).
+     * Opens a native JFileChooser to select any local SQLite database file (.db).
+     *
+     * @return true if a file was successfully chosen, false otherwise
      */
     public boolean handleBrowseDatabase() {
         JFileChooser chooser = new JFileChooser(new File("."));
@@ -293,11 +290,10 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleConnectDatabase
-     * parameters: none
-     * return: boolean
-     * purpose: Validates user database input, establishes the connection via JDBC,
-     *          updates the UI status, and populates the table.
+     * Validates user database input, establishes the connection via JDBC,
+     * updates the UI status, and populates the table.
+     *
+     * @return true if connection succeeds, false otherwise
      */
     public boolean handleConnectDatabase() {
         String path = txtDbPath.getText().trim();
@@ -330,10 +326,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleAddRecord
-     * parameters: none
-     * return: boolean
-     * purpose: Validates all input fields and executes an INSERT into the database.
+     * Validates all input fields and executes an INSERT into the database.
+     *
+     * @return true if the record is successfully added, false otherwise
      */
     public boolean handleAddRecord() {
         if (!ensureConnected()) {
@@ -428,10 +423,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleUpdateRecord
-     * parameters: none
-     * return: boolean
-     * purpose: Updates an existing database record using parameterized SQL.
+     * Updates an existing database record using parameterized SQL.
+     *
+     * @return true if update succeeds, false otherwise
      */
     public boolean handleUpdateRecord() {
         if (!ensureConnected()) {
@@ -522,10 +516,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleDeleteRecord
-     * parameters: none
-     * return: boolean
-     * purpose: Prompts for confirmation and purges the selected record from the SQLite database.
+     * Prompts for confirmation and purges the selected record from the SQLite database.
+     *
+     * @return true if deletion succeeds, false otherwise
      */
     public boolean handleDeleteRecord() {
         if (!ensureConnected()) {
@@ -580,11 +573,10 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleCustomAction
-     * parameters: none
-     * return: double
-     * purpose: Queries all live records from SQLite, computes line-item valuations with
-     *          collector surcharges and wholesale markdowns, and displays the report dialog.
+     * Queries all live records from SQLite, computes line-item valuations with
+     * collector surcharges and wholesale markdowns, and displays the report dialog.
+     *
+     * @return the total cumulative database inventory valuation
      */
     public double handleCustomAction() {
         if (!ensureConnected()) {
@@ -643,10 +635,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: refreshTableData
-     * parameters: none
-     * return: int
-     * purpose: Queries the SQLite table and updates the JTable view in real time.
+     * Queries the SQLite table and updates the JTable view in real time.
+     *
+     * @return the number of rows populated into the table
      */
     public int refreshTableData() {
         tableModel.setRowCount(0);
@@ -675,10 +666,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: populateFormFromSelectedRow
-     * parameters: none
-     * return: boolean
-     * purpose: Synchronizes input text fields with the selected table row.
+     * Synchronizes input text fields with the selected table row.
+     *
+     * @return true if a row is selected and populated, false otherwise
      */
     public boolean populateFormFromSelectedRow() {
         int selectedRow = gamesTable.getSelectedRow();
@@ -696,10 +686,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: clearFormFields
-     * parameters: none
-     * return: boolean
-     * purpose: Clears text inputs and resets active table selection.
+     * Clears text inputs and resets active table selection.
+     *
+     * @return true always
      */
     public boolean clearFormFields() {
         txtId.setText("");
@@ -713,10 +702,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: handleExit
-     * parameters: none
-     * return: boolean
-     * purpose: Safely closes the database connection and exits the application.
+     * Safely closes the database connection and exits the application.
+     *
+     * @return true if exit is confirmed, false otherwise
      */
     public boolean handleExit() {
         int choice = JOptionPane.showConfirmDialog(this,
@@ -731,10 +719,9 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: ensureConnected
-     * parameters: none
-     * return: boolean
-     * purpose: Checks if a valid database connection is open, prompting the user if not.
+     * Checks if a valid database connection is open, prompting the user if not.
+     *
+     * @return true if connected, false if disconnected
      */
     public boolean ensureConnected() {
         if (!dbManager.isConnected()) {
@@ -747,10 +734,11 @@ public class RetroVaultGUI extends JFrame {
     }
 
     /**
-     * method: styleButton
-     * parameters: JButton btn, Color bg
-     * return: boolean
-     * purpose: Formats buttons for visual hierarchy and readability.
+     * Formats buttons for visual hierarchy and readability.
+     *
+     * @param btn the JButton to style
+     * @param bg  the background Color to apply
+     * @return true always
      */
     public boolean styleButton(JButton btn, Color bg) {
         btn.setBackground(bg);

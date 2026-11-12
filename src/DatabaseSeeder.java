@@ -14,6 +14,11 @@ import java.sql.Statement;
  */
 public class DatabaseSeeder {
 
+    /**
+     * Main entry point for the database seeder utility.
+     *
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         String dbPath = "retrovault.db";
         String url = "jdbc:sqlite:" + dbPath;
@@ -54,7 +59,7 @@ public class DatabaseSeeder {
              Statement stmt = conn.createStatement()) {
 
             stmt.execute(createTableSQL);
-            stmt.execute("DELETE FROM games;"); // Clear existing rows for a fresh seed
+            stmt.execute("DELETE FROM games;");
 
             String insertSQL = "INSERT INTO games VALUES(?, ?, ?, ?, ?, ?);";
             try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
